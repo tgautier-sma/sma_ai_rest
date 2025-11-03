@@ -1,12 +1,19 @@
-# Python
+# === Python ===
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
+
+# Environnements virtuels
 env/
 venv/
+.venv/
 ENV/
+env.bak/
+venv.bak/
+
+# Distribution / Packaging
 build/
 develop-eggs/
 dist/
@@ -19,26 +26,118 @@ parts/
 sdist/
 var/
 wheels/
+pip-wheel-metadata/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# Database
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# === Base de données ===
 instance/
 *.db
 *.sqlite
 *.sqlite3
+*.db-journal
 
-# IDE
+# Sauvegardes de base de données
+backup/
+*.backup
+*.bak
+
+# === IDE et éditeurs ===
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+.project
+.pydevproject
+.settings/
 
-# Environment
+# === Variables d'environnement ===
 .env
 .env.local
+.env.*.local
+.env.production
+.env.development
 
-# Logs
+# === Logs ===
+logs/
 *.log
+log/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# === Docker ===
+# Ne pas ignorer les Dockerfiles et docker-compose
+# mais ignorer les volumes et données Docker locales
+docker-data/
+.docker/
+
+# === Jupyter Notebook ===
+.ipynb_checkpoints
+
+# === mypy ===
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# === Pyre type checker ===
+.pyre/
+
+# === Fichiers système ===
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# === Divers ===
+*.tmp
+*.temp
+.cache/
+.sass-cache/
+node_modules/
+
+# === Fichiers de configuration locale ===
+config.local.py
+config.local.json
+
+# === Certificats SSL (ne jamais commiter!) ===
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+ssl/
+certs/
+
+# === Secrets et clés (IMPORTANT!) ===
+secrets/
+.secrets/
+*.secret
+api_keys.txt

@@ -1,0 +1,78 @@
+# Fichiers et répertoires à ignorer lors de la construction Docker
+
+# Environnements virtuels Python
+venv/
+.venv/
+env/
+ENV/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Base de données locale (sera créée dans le conteneur)
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Scripts de développement (optionnel, décommenter si vous ne voulez pas les inclure)
+# start_server.ps1
+# start_server.sh
+# stop_server.ps1
+# stop_server.sh
+
+# Fichiers temporaires
+*.tmp
+*.temp
+.cache/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Configuration locale
+.env.local
+.env.*.local
+
+# Divers
+*.bak
+*.orig

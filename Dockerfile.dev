@@ -1,0 +1,42 @@
+# Dockerfile pour le développement avec hot-reload
+FROM python:3.11-slim
+
+# Métadonnées
+LABEL maintainer="SMA AI REST Team"
+LABEL description="API REST Client - Development Environment"
+LABEL version="dev"
+
+# Variables d'environnement Python
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1
+
+# Répertoire de travail
+WORKDIR /app
+
+# Installer les dépendances système
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    gcc \
+    curl \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copier et installer les dépendances Python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Créer le répertoire instance
+RUN mkdir -p /app/instance && chmod 777 /app/instance
+
+# Exposer le port
+EXPOSE 5000
+
+# Variables d'environnement pour le développement
+ENV FLASK_APP=app.py \
+    FLASK_ENV=development \
+    FLASK_DEBUG=1
+
+# Le code source sera monté via volume
+# Commande par défaut pour le développement
+CMD ["python", "-c", "from app import app; app.run(debug=True, host='0.0.0.0', port=5000, use_reloader=True, threaded=True)"]

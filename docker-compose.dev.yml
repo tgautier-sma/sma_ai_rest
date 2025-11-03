@@ -1,0 +1,39 @@
+version: '3.8'
+
+# Configuration Docker Compose pour le développement
+# Usage: docker-compose -f docker-compose.dev.yml up
+
+services:
+  sma-ai-rest-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: sma-ai-rest-dev
+    image: sma-ai-rest:dev
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+    volumes:
+      # Montage du code source pour le hot-reload
+      - ./app.py:/app/app.py
+      - ./models.py:/app/models.py
+      - ./static:/app/static
+      - ./templates:/app/templates
+      - ./instance:/app/instance
+    networks:
+      - sma-network-dev
+    command: ["python", "-c", "from app import app; app.run(debug=True, host='0.0.0.0', port=5000, use_reloader=True, threaded=True)"]
+    stdin_open: true
+    tty: true
+    labels:
+      - "com.sma.description=SMA AI REST API Server (Development)"
+      - "com.sma.version=dev"
+
+networks:
+  sma-network-dev:
+    driver: bridge
+    name: sma-ai-rest-network-dev
