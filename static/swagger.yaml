@@ -1,0 +1,420 @@
+openapi: 3.0.3
+info:
+  title: API REST Client
+  description: |
+    Application web pour effectuer des appels API REST, afficher les résultats de manière structurée 
+    et sauvegarder l'historique des requêtes.
+    
+    ## Fonctionnalités
+    - Appel d'API REST avec support des méthodes HTTP (GET, POST, PUT, DELETE, PATCH)
+    - Configuration de headers personnalisés
+    - Support du proxy HTTP/HTTPS/SOCKS5
+    - Sauvegarde automatique dans une base de données SQLite
+    - Historique des requêtes avec possibilité de réexécution
+    
+  version: 1.0.0
+  contact:
+    name: Support API
+    email: support@example.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:5000
+    description: Serveur de développement local
+  - url: http://localhost:5000/api
+    description: API Backend
+
+tags:
+  - name: Health
+    description: Vérification de l'état de l'application
+  - name: API Calls
+    description: Endpoints pour effectuer des appels API REST
+  - name: History
+    description: Gestion de l'historique des requêtes
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: |
+        Vérifie l'état de santé de l'application et de ses dépendances.
+        Retourne le statut de la base de données et des services.
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Application en bonne santé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: healthy
+                timestamp: "2025-11-03T14:30:00.123456"
+                version: "1.0.0"
+                services:
+                  database: healthy
+                  api: healthy
+        '503':
+          description: Service dégradé ou indisponible
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: degraded
+                timestamp: "2025-11-03T14:30:00.123456"
+                version: "1.0.0"
+                services:
+                  database: "unhealthy: connection error"
+                  api: healthy
+
+  /api/call:
+    post:
+      tags:
+        - API Calls
+      summary: Effectuer un appel API
+      description: |
+        Effectue un appel vers une API REST externe avec les paramètres spécifiés.
+        La requête est automatiquement sauvegardée dans l'historique.
+      operationId: callAPI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/APICallRequest'
+            examples:
+              simpleGet:
+                summary: Simple GET request
+                value:
+                  url: https://jsonplaceholder.typicode.com/posts/1
+                  method: GET
+              postWithBody:
+                summary: POST with JSON body
+                value:
+                  url: https://jsonplaceholder.typicode.com/posts
+                  method: POST
+                  headers:
+                    Content-Type: application/json
+                  body:
+                    title: Mon article
+                    body: Contenu de l'article
+                    userId: 1
+              withProxy:
+                summary: Request with proxy
+                value:
+                  url: https://api.example.com/data
+                  method: GET
+                  proxy: http://proxy.example.com:8080
+      responses:
+        '200':
+          description: Appel API réussi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APICallResponse'
+        '400':
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '408':
+          description: Timeout - La requête a pris trop de temps
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Erreur de connexion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/history:
+    get:
+      tags:
+        - History
+      summary: Récupérer l'historique des requêtes
+      description: Retourne la liste des requêtes API effectuées, triées par date décroissante
+      operationId: getHistory
+      parameters:
+        - name: limit
+          in: query
+          description: Nombre maximum de requêtes à retourner
+          required: false
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 1000
+      responses:
+        '200':
+          description: Liste des requêtes récupérée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HistoryResponse'
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/history/{request_id}:
+    get:
+      tags:
+        - History
+      summary: Récupérer les détails d'une requête
+      description: Retourne les détails complets d'une requête spécifique par son ID
+      operationId: getRequestDetail
+      parameters:
+        - name: request_id
+          in: path
+          description: ID de la requête
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Détails de la requête récupérés avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestDetailResponse'
+        '404':
+          description: Requête non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    
+    delete:
+      tags:
+        - History
+      summary: Supprimer une requête de l'historique
+      description: Supprime définitivement une requête de l'historique
+      operationId: deleteRequest
+      parameters:
+        - name: request_id
+          in: path
+          description: ID de la requête à supprimer
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Requête supprimée avec succès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Requête supprimée
+        '404':
+          description: Requête non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          description: État général de l'application
+          example: healthy
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp ISO 8601 du health check
+          example: "2025-11-03T14:30:00.123456"
+        version:
+          type: string
+          description: Version de l'application
+          example: "1.0.0"
+        services:
+          type: object
+          description: État des différents services
+          properties:
+            database:
+              type: string
+              description: État de la base de données
+              example: healthy
+            api:
+              type: string
+              description: État de l'API
+              example: healthy
+    
+    APICallRequest:
+      type: object
+      required:
+        - url
+        - method
+      properties:
+        url:
+          type: string
+          format: uri
+          description: URL de l'API à appeler
+          example: https://jsonplaceholder.typicode.com/posts/1
+        method:
+          type: string
+          enum: [GET, POST, PUT, DELETE, PATCH]
+          description: Méthode HTTP à utiliser
+          example: GET
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+          description: Headers HTTP personnalisés (optionnel)
+          example:
+            Content-Type: application/json
+            Authorization: Bearer token123
+        body:
+          oneOf:
+            - type: object
+            - type: string
+          description: Corps de la requête pour POST/PUT/PATCH (optionnel)
+          example:
+            title: Mon article
+            body: Contenu
+        proxy:
+          type: string
+          description: URL du proxy à utiliser (optionnel)
+          example: http://proxy.example.com:8080
+          pattern: '^(http|https|socks5)://.*'
+
+    APICallResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        status_code:
+          type: integer
+          description: Code de statut HTTP de la réponse
+          example: 200
+        response_data:
+          oneOf:
+            - type: object
+            - type: array
+            - type: string
+          description: Données retournées par l'API
+        response_time:
+          type: number
+          format: float
+          description: Temps de réponse en secondes
+          example: 0.523
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+          description: Headers de la réponse HTTP
+        request_id:
+          type: integer
+          description: ID de la requête sauvegardée dans l'historique
+          example: 42
+
+    HistoryResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/RequestItem'
+
+    RequestDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        request:
+          $ref: '#/components/schemas/RequestItem'
+
+    RequestItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        url:
+          type: string
+          example: https://jsonplaceholder.typicode.com/posts/1
+        method:
+          type: string
+          example: GET
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        body:
+          type: string
+          nullable: true
+        proxy:
+          type: string
+          nullable: true
+          example: http://proxy.example.com:8080
+        response_status:
+          type: integer
+          nullable: true
+          example: 200
+        response_data:
+          oneOf:
+            - type: object
+            - type: array
+            - type: string
+          nullable: true
+        response_time:
+          type: number
+          format: float
+          nullable: true
+          example: 0.523
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-11-03 14:30:00"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Message d'erreur
+          example: URL manquante
